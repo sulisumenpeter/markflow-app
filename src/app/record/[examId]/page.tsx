@@ -14,15 +14,18 @@ export default function RecordScoresPage({ params }: { params: Promise<{ examId:
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-  const [scoreInput, setScoreInput] = useState('');
+  const [testScoreInput, setTestScoreInput] = useState('');
+  const [examScoreInput, setExamScoreInput] = useState('');
   const [error, setError] = useState('');
   const [existingScore, setExistingScore] = useState<Score | null>(null);
   
   const [lastSaved, setLastSaved] = useState<{
     studentId: string;
     name: string;
-    score: number;
-    maxScore: number;
+    testScore: number;
+    examScore: number;
+    totalScore: number;
+    grade: string;
   } | null>(null);
   const confirmationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -117,13 +120,30 @@ export default function RecordScoresPage({ params }: { params: Promise<{ examId:
   const saveScore = async () => {
     if (!selectedStudent || !exam) return;
     
-    const scoreVal = Number(scoreInput);
-    if (isNaN(scoreVal) || scoreVal < 0 || scoreVal > exam.maximumScore) {
-      setError(`Score must be between 0 and ${exam.maximumScore}`);
+    const testScoreVal = Number(testScoreInput);
+    const examScoreVal = Number(examScoreInput);
+    
+    if (isNaN(testScoreVal) || testScoreVal < 0) {
+      setError(`Test Score must be a positive number`);
+      return;
+    }
+    if (isNaN(examScoreVal) || examScoreVal < 0) {
+      setError(`Exam Score must be a positive number`);
       return;
     }
     
-    if (existingScore && !window.confirm(`Score already exists (${existingScore.score}). Overwrite with ${scoreVal}?`)) {
+    const totalScoreVal = testScoreVal + examScoreVal;
+    
+    let gradeVal = 'F';
+    let remarkVal = 'FAIL';
+    
+    if (totalScoreVal >= 70) { gradeVal = 'A'; remarkVal = 'PASS'; }
+    else if (totalScoreVal >= 60) { gradeVal = 'B'; remarkVal = 'PASS'; }
+    else if (totalScoreVal >= 50) { gradeVal = 'C'; remarkVal = 'PASS'; }
+    else if (totalScoreVal >= 45) { gradeVal = 'D'; remarkVal = 'PASS'; }
+    else if (totalScoreVal >= 40) { gradeVal = 'E'; remarkVal = 'PASS'; }
+    
+    if (existingScore && !window.confirm(`Score already exists (Total: ${existingScore.totalScore}). Overwrite with ${totalScoreVal}?`)) {
       resetState();
       return;
     }
@@ -132,7 +152,11 @@ export default function RecordScoresPage({ params }: { params: Promise<{ examId:
     try {
       if (existingScore && existingScore.id) {
         await db.scores.update(existingScore.id, {
-          score: scoreVal,
+          testScore: testScoreVal,
+          examScore: examScoreVal,
+          totalScore: totalScoreVal,
+          grade: gradeVal,
+          remark: remarkVal,
           updatedAt: now
         });
       } else {
@@ -140,7 +164,11 @@ export default function RecordScoresPage({ params }: { params: Promise<{ examId:
           examId,
           studentId: selectedStudent.studentId,
           examId_studentId: `${examId}_${selectedStudent.studentId}`,
-          score: scoreVal,
+          testScore: testScoreVal,
+          examScore: examScoreVal,
+          totalScore: totalScoreVal,
+          grade: gradeVal,
+          remark: remarkVal,
           recordedAt: now,
           updatedAt: now
         });
@@ -149,8 +177,10 @@ export default function RecordScoresPage({ params }: { params: Promise<{ examId:
       setLastSaved({
         studentId: selectedStudent.studentId,
         name: selectedStudent.fullName,
-        score: scoreVal,
-        maxScore: exam.maximumScore
+        testScore: testScoreVal,
+        examScore: examScoreVal,
+        totalScore: totalScoreVal,
+        grade: gradeVal
       });
       
       if (confirmationTimeoutRef.current) clearTimeout(confirmationTimeoutRef.current);
@@ -164,7 +194,8 @@ export default function RecordScoresPage({ params }: { params: Promise<{ examId:
 
   const resetState = () => {
     setSelectedStudent(null);
-    setScoreInput('');
+    setTestScoreInput('');
+    setExamScoreInput('');
     setSearchTerm('');
     setExistingScore(null);
     setError('');
@@ -214,8 +245,10 @@ export default function RecordScoresPage({ params }: { params: Promise<{ examId:
                 <div className="text-sm text-green-900 grid grid-cols-2 gap-y-2 gap-x-4">
                   <div><span className="font-semibold">Student ID:</span> {lastSaved.studentId}</div>
                   <div><span className="font-semibold">Name:</span> {lastSaved.name}</div>
-                  <div><span className="font-semibold">Score:</span> <span className="font-bold text-lg">{lastSaved.score} / {lastSaved.maxScore}</span></div>
-                  <div><span className="font-semibold">Status:</span> Saved</div>
+                  <div><span className="font-semibold">Test:</span> {lastSaved.testScore}</div>
+                  <div><span className="font-semibold">Exam:</span> {lastSaved.examScore}</div>
+                  <div><span className="font-semibold">Total:</span> <span className="font-bold text-lg">{lastSaved.totalScore}</span></div>
+                  <div><span className="font-semibold">Grade:</span> {lastSaved.grade}</div>
                 </div>
               </div>
             )}
@@ -254,22 +287,34 @@ export default function RecordScoresPage({ params }: { params: Promise<{ examId:
 
             {existingScore && (
               <div className="bg-yellow-100 text-yellow-800 p-3 rounded-lg inline-block font-medium">
-                Warning: Score already recorded as {existingScore.score}
+                Warning: Score already recorded as Total {existingScore.totalScore} ({existingScore.grade})
               </div>
             )}
 
-            <div>
-              <label className="block text-gray-600 font-medium mb-2">Enter Score (Max: {exam.maximumScore})</label>
-              <input
-                ref={scoreInputRef}
-                type="number"
-                min="0"
-                max={exam.maximumScore}
-                className="text-center text-4xl w-48 border-2 border-green-400 rounded-lg p-4 shadow-inner focus:outline-none focus:border-green-600 mx-auto block"
-                value={scoreInput}
-                onChange={(e) => setScoreInput(e.target.value)}
-                onKeyDown={handleScoreKeyDown}
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-gray-600 font-medium mb-2">Test Score</label>
+                <input
+                  ref={scoreInputRef}
+                  type="number"
+                  min="0"
+                  className="text-center text-3xl w-full border-2 border-blue-400 rounded-lg p-3 shadow-inner focus:outline-none focus:border-blue-600"
+                  value={testScoreInput}
+                  onChange={(e) => setTestScoreInput(e.target.value)}
+                  onKeyDown={handleScoreKeyDown}
+                />
+              </div>
+              <div>
+                <label className="block text-gray-600 font-medium mb-2">Exam Score</label>
+                <input
+                  type="number"
+                  min="0"
+                  className="text-center text-3xl w-full border-2 border-green-400 rounded-lg p-3 shadow-inner focus:outline-none focus:border-green-600"
+                  value={examScoreInput}
+                  onChange={(e) => setExamScoreInput(e.target.value)}
+                  onKeyDown={handleScoreKeyDown}
+                />
+              </div>
             </div>
             
             <div className="flex justify-center space-x-4 pt-4">
@@ -294,7 +339,8 @@ export default function RecordScoresPage({ params }: { params: Promise<{ examId:
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student ID</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student Name</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Score</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Grade</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recorded Time</th>
                 </tr>
               </thead>
@@ -303,7 +349,8 @@ export default function RecordScoresPage({ params }: { params: Promise<{ examId:
                   <tr key={score.id}>
                     <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{score.studentId}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-gray-700">{score.studentName}</td>
-                    <td className="px-6 py-4 whitespace-nowrap font-bold text-gray-900">{score.score}</td>
+                    <td className="px-6 py-4 whitespace-nowrap font-bold text-gray-900">{score.totalScore}</td>
+                    <td className="px-6 py-4 whitespace-nowrap font-bold text-gray-900">{score.grade}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-gray-500">
                       {new Date(score.updatedAt).toLocaleTimeString()}
                     </td>

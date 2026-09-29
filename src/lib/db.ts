@@ -15,6 +15,9 @@ export interface Exam {
   id?: number;
   assessmentType?: 'EXAM' | 'TEST' | 'ASSIGNMENT';
   assessmentName?: string;
+  institution?: string;
+  faculty?: string;
+  department?: string;
   courseCode: string;
   courseTitle: string;
   session: string;
@@ -37,7 +40,11 @@ export interface Score {
   examId: number;
   studentId: string;
   examId_studentId: string;
-  score: number;
+  testScore: number;
+  examScore: number;
+  totalScore: number;
+  grade: string;
+  remark: string;
   recordedAt: number;
   updatedAt: number;
 }
@@ -67,6 +74,22 @@ export class MarkFlowDB extends Dexie {
         if (!exam.assessmentType) {
           exam.assessmentType = 'EXAM';
         }
+      });
+    });
+
+    this.version(3).stores({
+      students: '++id, &studentId, fullName, department, level, programme, createdAt, updatedAt',
+      exams: '++id, assessmentType, institution, faculty, department, courseCode, courseTitle, session, semester, maximumScore, createdAt, updatedAt',
+      examStudents: '++id, examId, studentId, [examId+studentId], orderIndex',
+      scores: '++id, examId, studentId, [examId+studentId], testScore, examScore, totalScore, grade, remark, recordedAt, updatedAt'
+    }).upgrade(tx => {
+      return tx.table('scores').toCollection().modify(score => {
+        score.testScore = 0;
+        score.examScore = score.score || 0;
+        score.totalScore = score.examScore;
+        score.grade = '';
+        score.remark = '';
+        delete score.score;
       });
     });
   }

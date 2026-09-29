@@ -11,6 +11,9 @@ export default function NewExamPage() {
   const studentCount = useLiveQuery(() => db.students.count());
 
   const [formData, setFormData] = useState({
+    institution: 'TARABA STATE UNIVERSITY, JALINGO',
+    faculty: '',
+    department: '',
     courseCode: '',
     courseTitle: '',
     assessmentType: 'EXAM',
@@ -79,17 +82,33 @@ export default function NewExamPage() {
       <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Course Code</label>
-            <input required type="text" value={formData.courseCode} onChange={e => setFormData({...formData, courseCode: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" placeholder="e.g. CSC 101" />
+            <label className="block text-sm font-medium text-gray-700">Institution</label>
+            <input required type="text" value={formData.institution} onChange={e => setFormData({...formData, institution: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" placeholder="e.g. TARABA STATE UNIVERSITY, JALINGO" />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Course Title</label>
-            <input required type="text" value={formData.courseTitle} onChange={e => setFormData({...formData, courseTitle: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" placeholder="e.g. Intro to Computer Science" />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Faculty</label>
+              <input required type="text" value={formData.faculty} onChange={e => setFormData({...formData, faculty: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" placeholder="e.g. FACULTY OF MANAGEMENT SCIENCES" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Department</label>
+              <input required type="text" value={formData.department} onChange={e => setFormData({...formData, department: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" placeholder="e.g. DEPARTMENT OF ACCOUNTING" />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Course Code</label>
+              <input required type="text" value={formData.courseCode} onChange={e => setFormData({...formData, courseCode: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" placeholder="e.g. ACC203" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Course Title</label>
+              <input required type="text" value={formData.courseTitle} onChange={e => setFormData({...formData, courseTitle: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" placeholder="e.g. CORPORATE GOVERNANCE AND ETHICS" />
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">Session</label>
-              <input required type="text" value={formData.session} onChange={e => setFormData({...formData, session: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" placeholder="e.g. 2023/2024" />
+              <input required type="text" value={formData.session} onChange={e => setFormData({...formData, session: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" placeholder="e.g. 2025/2026 ACADEMIC SESSION" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Semester</label>

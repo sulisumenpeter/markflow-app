@@ -25,11 +25,11 @@ export default function ResultsPage({ params }: { params: Promise<{ examId: stri
     
     // Get all scores for this exam
     const allScores = await db.scores.where({ examId }).toArray();
-    const scoreMap = new Map(allScores.map(s => [s.studentId, s.score]));
+    const scoreMap = new Map(allScores.map(s => [s.studentId, s]));
     
     return roster.map((rosterItem, index) => {
       const student = studentMap.get(rosterItem.studentId);
-      const score = scoreMap.get(rosterItem.studentId);
+      const scoreObj = scoreMap.get(rosterItem.studentId);
       
       return {
         sn: index + 1,
@@ -37,7 +37,12 @@ export default function ResultsPage({ params }: { params: Promise<{ examId: stri
         fullName: student?.fullName || 'Unknown',
         department: student?.department || '',
         level: student?.level || '',
-        score: score !== undefined ? score : null
+        testScore: scoreObj !== undefined ? scoreObj.testScore : null,
+        examScore: scoreObj !== undefined ? scoreObj.examScore : null,
+        totalScore: scoreObj !== undefined ? scoreObj.totalScore : null,
+        grade: scoreObj !== undefined ? scoreObj.grade : null,
+        remark: scoreObj !== undefined ? scoreObj.remark : null,
+        status: scoreObj !== undefined ? 'Recorded' : 'Missing'
       };
     });
   }, [examId]);
@@ -45,20 +50,70 @@ export default function ResultsPage({ params }: { params: Promise<{ examId: stri
   const handleExport = () => {
     if (!exam || !results) return;
     
-    const dataForExcel = results.map(r => ({
-      'S/N': r.sn,
-      'Student ID': r.studentId,
-      'Name': r.fullName,
-      'Department': r.department,
-      'Level': r.level,
-      'Score': r.score !== null ? r.score : 'ABS'
-    }));
+    const ws = XLSX.utils.aoa_to_sheet([]);
+    
+    // Add Headers
+    XLSX.utils.sheet_add_aoa(ws, [
+      ['', '', exam.institution || 'TARABA STATE UNIVERSITY, JALINGO'],
+      ['', '', exam.faculty || 'FACULTY OF MANAGEMENT SCIENCES'],
+      ['', '', exam.department || 'DEPARTMENT OF ACCOUNTING'],
+      ['', '', `RESULT SHEET ${exam.session || '2025/2026 ACADEMIC SESSION'}`],
+      ['', '', `${exam.courseTitle} ${exam.courseCode}`],
+    ], { origin: 'A1' });
+    
+    // Add Data Table Headers
+    XLSX.utils.sheet_add_aoa(ws, [
+      ['S/N', 'REGISTRATION NUMBER', 'TEST', 'EXAMS', 'TOTAL', 'GRADE', 'REMARKS']
+    ], { origin: 'A6' });
+    
+    // Add Data
+    const dataForExcel = results.map(r => [
+      r.sn,
+      r.studentId,
+      r.testScore !== null ? r.testScore : '',
+      r.examScore !== null ? r.examScore : '',
+      r.totalScore !== null ? r.totalScore : '',
+      r.grade !== null ? r.grade : '',
+      r.remark !== null ? r.remark : ''
+    ]);
+    XLSX.utils.sheet_add_aoa(ws, dataForExcel, { origin: 'A7' });
+    
+    // Calculate Summary
+    const grades = { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 };
+    let totalGrades = 0;
+    for (const r of results) {
+      if (r.grade && r.grade in grades) {
+        grades[r.grade as keyof typeof grades]++;
+        totalGrades++;
+      }
+    }
+    
+    const summaryRowStart = 7 + results.length + 2;
+    XLSX.utils.sheet_add_aoa(ws, [
+      ['GRADE', 'NUMBER', 'PERCENTAGE'],
+      ['A', grades.A, totalGrades ? Math.round((grades.A / totalGrades) * 100) : 0],
+      ['B', grades.B, totalGrades ? Math.round((grades.B / totalGrades) * 100) : 0],
+      ['C', grades.C, totalGrades ? Math.round((grades.C / totalGrades) * 100) : 0],
+      ['D', grades.D, totalGrades ? Math.round((grades.D / totalGrades) * 100) : 0],
+      ['E', grades.E, totalGrades ? Math.round((grades.E / totalGrades) * 100) : 0],
+      ['F', grades.F, totalGrades ? Math.round((grades.F / totalGrades) * 100) : 0],
+      ['TOTAL', totalGrades, 100]
+    ], { origin: `B${summaryRowStart}` });
+    
+    // Add Signature Blocks
+    const sigRowStart = summaryRowStart + 9;
+    XLSX.utils.sheet_add_aoa(ws, [
+      ['Lecturer\'s name: '],
+      ['Sign:...................................', 'Date:...................................'],
+      [],
+      ['HOD'],
+      ['Sign:...................................', 'Date:...................................']
+    ], { origin: `B${sigRowStart}` });
 
-    const ws = XLSX.utils.json_to_sheet(dataForExcel);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Results');
     
-    const filename = `${exam.courseCode}_${exam.assessmentName ? exam.assessmentName + '_' : ''}Results_${exam.session.replace(/\//g, '-')}.xlsx`;
+    const filename = `${exam.courseCode}_Results_${exam.session.replace(/\//g, '-')}.xlsx`;
     XLSX.writeFile(wb, filename);
   };
 
@@ -90,27 +145,24 @@ export default function ResultsPage({ params }: { params: Promise<{ examId: stri
             <tr>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">S/N</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student ID</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Score / {exam.maximumScore}</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Test</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Exams</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Grade</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Remarks</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {results?.map(r => (
-              <tr key={r.studentId} className={r.score === null ? 'bg-red-50' : ''}>
+              <tr key={r.studentId} className={r.totalScore === null ? 'bg-red-50' : ''}>
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{r.sn}</td>
                 <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{r.studentId}</td>
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{r.fullName}</td>
-                <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-gray-900">
-                  {r.score !== null ? r.score : '-'}
-                </td>
-                <td className="px-4 py-3 whitespace-nowrap text-sm">
-                  {r.score !== null ? (
-                    <span className="text-green-600 font-medium">Recorded</span>
-                  ) : (
-                    <span className="text-red-600 font-medium">Missing</span>
-                  )}
-                </td>
+                <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-gray-900">{r.testScore !== null ? r.testScore : '-'}</td>
+                <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-gray-900">{r.examScore !== null ? r.examScore : '-'}</td>
+                <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-gray-900">{r.totalScore !== null ? r.totalScore : '-'}</td>
+                <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-gray-900">{r.grade !== null ? r.grade : '-'}</td>
+                <td className="px-4 py-3 whitespace-nowrap text-sm">{r.remark !== null ? r.remark : '-'}</td>
               </tr>
             ))}
             {results?.length === 0 && (
