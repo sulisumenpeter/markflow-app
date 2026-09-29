@@ -4,15 +4,15 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
 import Link from 'next/link';
 
-export default function ExamsPage() {
-  const exams = useLiveQuery(() => db.exams.filter(e => !e.assessmentType || e.assessmentType === 'EXAM').toArray()) || [];
+export default function AssignmentsPage() {
+  const exams = useLiveQuery(() => db.exams.filter(e => e.assessmentType === 'ASSIGNMENT').toArray()) || [];
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">Exams</h1>
-        <Link href="/exams/new" className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700">
-          Create New Exam
+        <h1 className="text-3xl font-bold text-gray-900">Assignments</h1>
+        <Link href="/assignments/new" className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700">
+          Create New Assignment
         </Link>
       </div>
       
@@ -22,6 +22,7 @@ export default function ExamsPage() {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Course</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assignment Name</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Session</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Semester</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Max Score</th>
@@ -34,6 +35,7 @@ export default function ExamsPage() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {exam.courseCode} - {exam.courseTitle}
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{exam.assessmentName}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{exam.session}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{exam.semester}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{exam.maximumScore}</td>
@@ -45,7 +47,7 @@ export default function ExamsPage() {
               ))}
               {exams.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">No exams found.</td>
+                  <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">No assignments found.</td>
                 </tr>
               )}
             </tbody>

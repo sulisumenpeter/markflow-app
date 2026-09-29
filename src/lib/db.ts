@@ -13,6 +13,8 @@ export interface Student {
 
 export interface Exam {
   id?: number;
+  assessmentType?: 'EXAM' | 'TEST' | 'ASSIGNMENT';
+  assessmentName?: string;
   courseCode: string;
   courseTitle: string;
   session: string;
@@ -53,6 +55,19 @@ export class MarkFlowDB extends Dexie {
       exams: '++id, courseCode, courseTitle, session, semester, maximumScore, createdAt, updatedAt',
       examStudents: '++id, examId, studentId, [examId+studentId], orderIndex',
       scores: '++id, examId, studentId, [examId+studentId], score, recordedAt, updatedAt'
+    });
+    
+    this.version(2).stores({
+      students: '++id, &studentId, fullName, department, level, programme, createdAt, updatedAt',
+      exams: '++id, assessmentType, courseCode, courseTitle, session, semester, maximumScore, createdAt, updatedAt',
+      examStudents: '++id, examId, studentId, [examId+studentId], orderIndex',
+      scores: '++id, examId, studentId, [examId+studentId], score, recordedAt, updatedAt'
+    }).upgrade(tx => {
+      return tx.table('exams').toCollection().modify(exam => {
+        if (!exam.assessmentType) {
+          exam.assessmentType = 'EXAM';
+        }
+      });
     });
   }
 }

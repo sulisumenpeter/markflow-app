@@ -55,7 +55,7 @@ export default function SettingsPage() {
   };
 
   const handleClearData = async () => {
-    if (!window.confirm('DANGER: This will permanently delete all students, exams, and scores. Type "DELETE" to confirm.')) return;
+    if (!window.confirm('DANGER: This will permanently delete all students, exams, tests, assignments, and scores. Type "DELETE" to confirm.')) return;
     
     const conf = window.prompt('Type DELETE to confirm clearing all data');
     if (conf === 'DELETE') {
@@ -87,7 +87,7 @@ export default function SettingsPage() {
       <div className="bg-white p-6 rounded-lg shadow border border-gray-200 space-y-6">
         <div>
           <h2 className="text-xl font-semibold text-gray-800 mb-2">Backup Data</h2>
-          <p className="text-gray-600 mb-4 text-sm">Download a complete backup of all students, exams, and recorded scores. Keep this file safe.</p>
+          <p className="text-gray-600 mb-4 text-sm">Download a complete backup of all students, exams, tests, assignments, and recorded scores. Keep this file safe.</p>
           <button 
             onClick={handleBackup} 
             disabled={loading}

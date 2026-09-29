@@ -58,7 +58,7 @@ export default function ResultsPage({ params }: { params: Promise<{ examId: stri
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Results');
     
-    const filename = `${exam.courseCode}_Results_${exam.session.replace(/\//g, '-')}.xlsx`;
+    const filename = `${exam.courseCode}_${exam.assessmentName ? exam.assessmentName + '_' : ''}Results_${exam.session.replace(/\//g, '-')}.xlsx`;
     XLSX.writeFile(wb, filename);
   };
 
@@ -68,8 +68,11 @@ export default function ResultsPage({ params }: { params: Promise<{ examId: stri
     <div className="space-y-6">
       <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">{exam.courseCode} Results</h1>
-          <p className="text-gray-600">{exam.courseTitle} - {exam.session}</p>
+          <h1 className="text-3xl font-bold text-gray-900">{exam.courseCode} Results {exam.assessmentName ? `- ${exam.assessmentName}` : ''}</h1>
+          <p className="text-gray-600">
+            <span className="text-xs font-bold bg-blue-100 text-blue-800 px-2 py-1 rounded mr-2 align-middle">{exam.assessmentType || 'EXAM'}</span>
+            {exam.courseTitle} - {exam.session}
+          </p>
         </div>
         <div className="space-x-3">
           <Link href={`/record/${examId}`} className="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 border">
@@ -112,7 +115,7 @@ export default function ResultsPage({ params }: { params: Promise<{ examId: stri
             ))}
             {results?.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-3 text-center text-gray-500">No students enrolled in this exam.</td>
+                <td colSpan={5} className="px-4 py-3 text-center text-gray-500">No students enrolled in this assessment.</td>
               </tr>
             )}
           </tbody>

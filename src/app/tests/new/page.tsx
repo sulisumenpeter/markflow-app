@@ -5,7 +5,7 @@ import { db } from '@/lib/db';
 import { useRouter } from 'next/navigation';
 import { useLiveQuery } from 'dexie-react-hooks';
 
-export default function NewExamPage() {
+export default function NewTestPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const studentCount = useLiveQuery(() => db.students.count());
@@ -13,7 +13,8 @@ export default function NewExamPage() {
   const [formData, setFormData] = useState({
     courseCode: '',
     courseTitle: '',
-    assessmentType: 'EXAM',
+    assessmentName: '',
+    assessmentType: 'TEST',
     session: '',
     semester: '1st',
     maximumScore: 100
@@ -22,7 +23,7 @@ export default function NewExamPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!studentCount) {
-      alert("Please import students before creating an exam.");
+      alert("Please import students before creating a test.");
       return;
     }
     
@@ -51,10 +52,9 @@ export default function NewExamPage() {
         await db.examStudents.bulkAdd(examStudents);
       });
 
-      router.push('/exams');
+      router.push('/tests');
     } catch (error) {
-      console.error(error);
-      alert('Failed to create exam');
+      alert('Failed to create test');
     } finally {
       setLoading(false);
     }
@@ -64,7 +64,7 @@ export default function NewExamPage() {
     return (
       <div className="max-w-2xl mx-auto p-6 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800">
         <h2 className="text-xl font-bold mb-2">No Students Found</h2>
-        <p>You must import students into the system before creating an exam.</p>
+        <p>You must import students into the system before creating a test.</p>
         <button onClick={() => router.push('/students/import')} className="mt-4 bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700">
           Import Students
         </button>
@@ -74,7 +74,7 @@ export default function NewExamPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <h1 className="text-3xl font-bold text-gray-900">Create New Exam</h1>
+      <h1 className="text-3xl font-bold text-gray-900">Create New Test</h1>
       
       <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -85,6 +85,10 @@ export default function NewExamPage() {
           <div>
             <label className="block text-sm font-medium text-gray-700">Course Title</label>
             <input required type="text" value={formData.courseTitle} onChange={e => setFormData({...formData, courseTitle: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" placeholder="e.g. Intro to Computer Science" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Test Name</label>
+            <input required type="text" value={formData.assessmentName} onChange={e => setFormData({...formData, assessmentName: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" placeholder="e.g. Test 1, Mid-Semester Test" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -106,7 +110,7 @@ export default function NewExamPage() {
           
           <div className="pt-4">
             <button type="submit" disabled={loading} className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 disabled:bg-blue-300 shadow">
-              {loading ? 'Creating...' : 'Create Exam'}
+              {loading ? 'Creating...' : 'Create Test'}
             </button>
           </div>
         </form>

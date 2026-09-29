@@ -49,6 +49,12 @@ export default function RootLayout({
                   <Link href="/exams" className="text-gray-500 hover:text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300 text-sm font-medium">
                     Exams
                   </Link>
+                  <Link href="/tests" className="text-gray-500 hover:text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300 text-sm font-medium">
+                    Tests
+                  </Link>
+                  <Link href="/assignments" className="text-gray-500 hover:text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300 text-sm font-medium">
+                    Assignments
+                  </Link>
                   <Link href="/settings" className="text-gray-500 hover:text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300 text-sm font-medium">
                     Settings
                   </Link>

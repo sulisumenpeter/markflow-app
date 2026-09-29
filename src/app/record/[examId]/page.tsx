@@ -177,8 +177,11 @@ export default function RecordScoresPage({ params }: { params: Promise<{ examId:
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">{exam.courseCode}</h1>
-          <p className="text-gray-600">{exam.courseTitle} - {exam.session}</p>
+          <h1 className="text-3xl font-bold text-gray-900">{exam.courseCode} {exam.assessmentName ? `- ${exam.assessmentName}` : ''}</h1>
+          <p className="text-gray-600">
+            <span className="text-xs font-bold bg-blue-100 text-blue-800 px-2 py-1 rounded mr-2 align-middle">{exam.assessmentType || 'EXAM'}</span>
+            {exam.courseTitle} - {exam.session}
+          </p>
         </div>
         <Link href={`/results/${examId}`} className="text-blue-600 hover:underline font-medium">
           View Results &rarr;
