@@ -7,6 +7,16 @@ import Link from 'next/link';
 export default function TestsPage() {
   const exams = useLiveQuery(() => db.exams.filter(e => e.assessmentType === 'TEST').toArray()) || [];
 
+  const handleDelete = async (id: number) => {
+    if (confirm('Are you sure you want to delete this test? This will delete all associated scores.')) {
+      await db.transaction('rw', db.exams, db.examStudents, db.scores, async () => {
+        await db.scores.where({ examId: id }).delete();
+        await db.examStudents.where({ examId: id }).delete();
+        await db.exams.delete(id);
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0">
@@ -42,6 +52,7 @@ export default function TestsPage() {
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                     <Link href={`/record/${exam.id}`} className="text-blue-600 hover:text-blue-900">Record</Link>
                     <Link href={`/results/${exam.id}`} className="text-green-600 hover:text-green-900">Results</Link>
+                    <button onClick={() => handleDelete(exam.id!)} className="text-red-600 hover:text-red-900">Delete</button>
                   </td>
                 </tr>
               ))}
