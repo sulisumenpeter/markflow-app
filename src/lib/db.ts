@@ -60,15 +60,15 @@ export class MarkFlowDB extends Dexie {
     this.version(1).stores({
       students: '++id, &studentId, fullName, department, level, programme, createdAt, updatedAt',
       exams: '++id, courseCode, courseTitle, session, semester, maximumScore, createdAt, updatedAt',
-      examStudents: '++id, examId, studentId, [examId+studentId], orderIndex',
-      scores: '++id, examId, studentId, [examId+studentId], score, recordedAt, updatedAt'
+      examStudents: '++id, examId, studentId, examId_studentId, orderIndex',
+      scores: '++id, examId, studentId, examId_studentId, score, recordedAt, updatedAt'
     });
     
     this.version(2).stores({
       students: '++id, &studentId, fullName, department, level, programme, createdAt, updatedAt',
       exams: '++id, assessmentType, courseCode, courseTitle, session, semester, maximumScore, createdAt, updatedAt',
-      examStudents: '++id, examId, studentId, [examId+studentId], orderIndex',
-      scores: '++id, examId, studentId, [examId+studentId], score, recordedAt, updatedAt'
+      examStudents: '++id, examId, studentId, examId_studentId, orderIndex',
+      scores: '++id, examId, studentId, examId_studentId, score, recordedAt, updatedAt'
     }).upgrade(tx => {
       return tx.table('exams').toCollection().modify(exam => {
         if (!exam.assessmentType) {
@@ -80,8 +80,8 @@ export class MarkFlowDB extends Dexie {
     this.version(3).stores({
       students: '++id, &studentId, fullName, department, level, programme, createdAt, updatedAt',
       exams: '++id, assessmentType, institution, faculty, department, courseCode, courseTitle, session, semester, maximumScore, createdAt, updatedAt',
-      examStudents: '++id, examId, studentId, [examId+studentId], orderIndex',
-      scores: '++id, examId, studentId, [examId+studentId], testScore, examScore, totalScore, grade, remark, recordedAt, updatedAt'
+      examStudents: '++id, examId, studentId, examId_studentId, orderIndex',
+      scores: '++id, examId, studentId, examId_studentId, testScore, examScore, totalScore, grade, remark, recordedAt, updatedAt'
     }).upgrade(tx => {
       return tx.table('scores').toCollection().modify(score => {
         score.testScore = 0;
