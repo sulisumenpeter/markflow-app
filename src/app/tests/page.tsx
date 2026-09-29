@@ -9,9 +9,9 @@ export default function TestsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0">
         <h1 className="text-3xl font-bold text-gray-900">Tests</h1>
-        <Link href="/tests/new" className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700">
+        <Link href="/tests/new" className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 text-center">
           Create New Test
         </Link>
       </div>

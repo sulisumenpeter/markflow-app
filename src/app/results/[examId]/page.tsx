@@ -66,19 +66,19 @@ export default function ResultsPage({ params }: { params: Promise<{ examId: stri
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-end">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end space-y-4 sm:space-y-0">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">{exam.courseCode} Results {exam.assessmentName ? `- ${exam.assessmentName}` : ''}</h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 mt-1">
             <span className="text-xs font-bold bg-blue-100 text-blue-800 px-2 py-1 rounded mr-2 align-middle">{exam.assessmentType || 'EXAM'}</span>
             {exam.courseTitle} - {exam.session}
           </p>
         </div>
-        <div className="space-x-3">
-          <Link href={`/record/${examId}`} className="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 border">
+        <div className="flex space-x-3">
+          <Link href={`/record/${examId}`} className="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 border text-center">
             Continue Recording
           </Link>
-          <button onClick={handleExport} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 shadow">
+          <button onClick={handleExport} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 shadow text-center">
             Export to Excel
           </button>
         </div>
