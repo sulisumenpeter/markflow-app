@@ -104,10 +104,10 @@ export default function ResultsPage({ params }: { params: Promise<{ examId: stri
     const sigRowStart = summaryRowStart + 9;
     XLSX.utils.sheet_add_aoa(ws, [
       ['Lecturer\'s name: '],
-      ['Sign:...................................', 'Date:...................................'],
+      ['Sign:...................................', '', 'Date:...................................'],
       [],
       ['HOD'],
-      ['Sign:...................................', 'Date:...................................']
+      ['Sign:...................................', '', 'Date:...................................']
     ], { origin: `B${sigRowStart}` });
 
     const wb = XLSX.utils.book_new();
