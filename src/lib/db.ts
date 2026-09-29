@@ -92,6 +92,13 @@ export class MarkFlowDB extends Dexie {
         delete score.score;
       });
     });
+
+    this.version(4).stores({
+      students: '++id, &studentId, fullName, department, level, programme, createdAt, updatedAt',
+      exams: '++id, assessmentType, institution, faculty, department, courseCode, courseTitle, session, semester, maximumScore, createdAt, updatedAt',
+      examStudents: '++id, examId, studentId, examId_studentId, orderIndex',
+      scores: '++id, examId, studentId, examId_studentId, testScore, examScore, totalScore, grade, remark, recordedAt, updatedAt'
+    });
   }
 }
 
